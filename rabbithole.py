@@ -8,6 +8,10 @@ import sys
 import os.path
 import re
 
+# Package specific python modules/packages
+import commands
+from modules import *
+
 ## - Script Settings
 configFile = "/vagrant/config.cfg"
 
@@ -42,34 +46,6 @@ Commands:
         shell - Drop to a bash shell
         exit - Close this ssh connection""".format(config.get('global', 'companyName')))
 
-def listCmd(args):
-    try:
-        file = open(config.get('global', 'inventory'), 'r')
-    except:
-        print("An error occured reading the inventory file")
-        return 1
-
-    if args == '':
-        # Match a line that doesn't start with a # and has at least one character
-        args = '[^#].+'
-    reg = re.compile('^'+args, re.IGNORECASE)
-    matchedDevices = []
-    for line in file:
-        if reg.search(line):
-            matchedDevices.append(line.split(' ')[0])
-
-    print("Matched Devices:")
-    if len(matchedDevices) == 0:
-        print("\tNo matches")
-    else:
-        print("\t", end='')
-        for i, val in enumerate(matchedDevices):
-            print(val, end='\t')
-            if (i+1) % 4 == 0 and (i+1) != len(matchedDevices):
-                print('\n\t', end='')
-
-        print()
-
 def sshCmd(args):
     startProcess(["ssh", cmd])
 
@@ -99,20 +75,7 @@ Type help to see available commands
 """.format(config.get('global', 'serverName'), config.get('global', 'tagline'), os.getlogin(), ll))
 
 ## - Main Script
-def main():
-    global config
-    if not os.path.isfile(configFile):
-        print("RabbitHole SSH Portal\n\nNo configuration file found.\nPlease alert the system administrator.")
-        sys.exit()
-
-    config = SafeConfigParser()
-    config.read(configFile)
-
-    if geteuid() == 0 and config.getboolean('global', 'rootBypass'):
-        startShell()
-        sys.exit()
-
-    printMotd()
+def mainLoop():
     while True:
         try:
             cmd = raw_input(os.getlogin() + '> ')
@@ -128,12 +91,14 @@ def main():
         args = ''
         if len(cmdParts) == 2:
             args = cmdParts[1]
+
+        if commands.callCmd(head, config, args):
+            continue
+
         if head == 'exit':
             exitCmd()
         elif head == 'help':
             helpCmd()
-        elif head == 'list':
-            listCmd(args)
         elif head == 'ssh':
             sshCmd(args)
         elif head == 'telnet':
@@ -144,6 +109,23 @@ def main():
             shellCmd()
         else:
             print("RabbitHole: Unknown command '{}'").format(head)
+
+def main():
+    global config
+    if not os.path.isfile(configFile):
+        print("RabbitHole SSH Portal\n\nNo configuration file found.\nPlease alert the system administrator.")
+        sys.exit()
+
+    config = SafeConfigParser()
+    config.read(configFile)
+
+    # If user is root and rootBypass is enabled, just drop to a shell
+    if geteuid() == 0 and config.getboolean('global', 'rootBypass'):
+        startShell()
+        sys.exit()
+
+    printMotd()
+    mainLoop()
 
 # Global var for SafeConfigParser
 config = None
