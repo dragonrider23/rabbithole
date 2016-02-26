@@ -2,6 +2,7 @@
 from __future__ import print_function
 from subprocess import Popen
 import sys
+import shlex
 
 # Dict of {"func", "help", "alias"} indexed with a command name
 cmds = {}
@@ -19,8 +20,10 @@ def helpCmd(*_):
             print("\t{} - {}".format(name, cmd["help"]))
 
 # - Start a fully interactive process
+# cmd is a STRING with the full command and arguments
 def startProcess(cmd):
     try:
+        cmd = shlex.split(cmd)
         process = Popen(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
         process.wait()
     except KeyboardInterrupt:

@@ -59,7 +59,7 @@ def mainLoop():
             continue
 
         # Separate command from arguments
-        cmdParts = cmd.split(' ', 1)
+        cmdParts = cmd.strip().split(' ', 1)
         head = cmdParts[0]
         args = ''
         if len(cmdParts) == 2:

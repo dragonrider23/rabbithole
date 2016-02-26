@@ -8,7 +8,7 @@ import common
 # Syntax: connect [username@]deviceName
 def connectCmd(config, args):
     try:
-        file = open(config.get('global', 'inventory'), 'r')
+        file = open(config.get('connect', 'inventory'), 'r')
     except:
         print("An error occured reading the inventory file")
         return
@@ -27,7 +27,8 @@ def connectCmd(config, args):
 
         args = parts[1]
 
-    reg = re.compile('^'+args+' ', re.IGNORECASE)
+    args = re.escape(args)
+    reg = re.compile('^'+args+'\s', re.IGNORECASE)
     matchedDevice = []
     for line in file:
         if reg.search(line):
@@ -42,32 +43,58 @@ def connectCmd(config, args):
         print("Incorrect line format for device "+args)
         return
 
-    if matchedDevice[2] == 'ssh':
-        common.callCmd('ssh', config, username+'@'+matchedDevice[1])
-    elif matchedDevice[2] == 'telnet':
-        common.callCmd('telnet', config, matchedDevice[1])
+    if config.getboolean('connect', 'useProxy'):
+        _connectProxy(config, matchedDevice, username)
     else:
-        print("Unknown connection type "+matchedDevice[2])
+        _connect(config, matchedDevice, username)
+
+def _connect(config, device, username):
+    if device[2] == 'ssh':
+        common.callCmd('ssh', config, username+'@'+device[1])
+    elif device[2] == 'telnet':
+        common.callCmd('telnet', config, device[1])
+    else:
+        print("Unknown connection type "+device[2])
+
+def _connectProxy(config, device, username):
+    # ssh proxyUser@proxyAddress -tt ssh username@address
+    # Build proxy ssh command
+    proxyUser = getlogin()
+    if config.get('connect', 'proxyUser') != '':
+        proxyUser = config.get('connect', 'proxyUser')
+    command = "{}@{} -tt ".format(proxyUser, config.get('connect', 'proxyAddress'))
+    # Add on the specific ssh/telnet command
+    if device[2] == 'ssh':
+        command += "ssh {}@".format(username)
+    elif device[2] == 'telnet':
+        command += "telnet "
+    else:
+        print("Unknown connection type "+device[2])
+    # Add the device's address
+    command += device[1]
+    common.callCmd('ssh', config, command)
 
 # - Search for and list devices by a pattern
 # Syntax: list [pattern]
 def listCmd(config, args):
     try:
-        file = open(config.get('global', 'inventory'), 'r')
+        file = open(config.get('connect', 'inventory'), 'r')
     except:
         print("An error occured reading the inventory file")
-        return 1
+        return
 
     if args == '':
         # Match a line that doesn't start with a # and has at least one character
         args = '[^#].+'
+    else:
+        args = re.escape(args)
 
     reg = re.compile('^'+args, re.IGNORECASE)
     matchedDevices = []
 
     for line in file:
         if reg.search(line):
-            matchedDevices.append(line.split(' ')[0])
+            matchedDevices.append(line.split(' ', 1)[0])
 
     print("Matched Devices:")
     if len(matchedDevices) == 0:
