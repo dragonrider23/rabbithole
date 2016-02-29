@@ -22,8 +22,10 @@ def helpCmd(*_):
 # - Start a fully interactive process
 # cmd is a STRING with the full command and arguments
 def startProcess(cmd):
-    try:
+    if not sys.platform == 'win32' and not sys.platform == 'cygwin':
         cmd = shlex.split(cmd)
+
+    try:
         process = Popen(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
         process.wait()
     except KeyboardInterrupt:
