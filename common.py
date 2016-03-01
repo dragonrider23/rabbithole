@@ -66,7 +66,7 @@ def callCmd(name, *args):
 def __callCmd(name, *args):
     if name in cmds:
         if cmds[name]["alias"] != '':
-            return __callCmd(cmds[name]["alias"], args)
+            return __callCmd(cmds[name]["alias"], *args)
 
         cmds[name]["func"](*args)
         return True
