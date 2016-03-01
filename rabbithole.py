@@ -13,7 +13,7 @@ from modules import *
 
 # - Start a Bash shell
 def startShell():
-    common.startProcess(['/usr/bin/env', 'bash', '--login'])
+    common.startProcess("/usr/bin/env bash --login")
 
 # - Exit from portal
 # Syntax: exit
@@ -46,6 +46,7 @@ def printMotd(file):
 def printLoginHeader():
     # Get last login time
     ll = 'Unknown'
+    # Windows/cygwin doesn't have have 'last'
     if not sys.platform == 'win32' and not sys.platform == 'cygwin':
         ll = check_output("last -1 -R  $USER | head -1 | cut -c 23-41", shell=True).rstrip()
     print("Type help to see available commands\nLast login: {}".format(ll))
@@ -102,6 +103,12 @@ def main():
     if len(sys.argv) > 1:
         processCmd(' '.join(sys.argv[1:]))
         sys.exit()
+
+    # Check if someone SSHed into the machine with a command
+    if os.getenv('SSH_ORIGINAL_COMMAND', '') != '':
+        processCmd(os.getenv('SSH_ORIGINAL_COMMAND'))
+        sys.exit()
+
 
     # If user is root and rootBypass is enabled, just drop to a shell
     if geteuid() == 0 and config.getboolean('global', 'rootBypass'):

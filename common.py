@@ -22,6 +22,7 @@ def helpCmd(*_):
 # - Start a fully interactive process
 # cmd is a STRING with the full command and arguments
 def startProcess(cmd):
+    # Windows uses a string, *nix uses an array
     if not sys.platform == 'win32' and not sys.platform == 'cygwin':
         cmd = shlex.split(cmd)
 
