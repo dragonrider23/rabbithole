@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from __future__ import print_function
 from subprocess import Popen
+from datetime import datetime
 import sys
 import shlex
 
@@ -61,6 +62,12 @@ def callCmd(name, *args):
         return __callCmd(name, *args)
     except RuntimeError:
         print("Recursion loop detected for command '{}'".format(name))
+        return True
+    except Exception as e:
+        print("There was an error running the command '{}'".format(name))
+        errorMsg = "{} ERROR: Module: {} Message: {}\n".format(datetime.today(), name, e.message)
+        with open("error.log", 'a') as logfile:
+            logfile.write(errorMsg)
         return True
 
 def __callCmd(name, *args):
