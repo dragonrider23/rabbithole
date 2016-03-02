@@ -9,4 +9,10 @@ service ssh restart
 adduser --disabled-password --gecos "" tester
 echo "tester:a" | chpasswd
 
-ln -s /vagrant /etc/rabbithole
+# Configure rabbithole
+mkdir /etc/rabbithole
+cp /vagrant/rabbithole.cfg /etc/rabbithole/rabbithole.cfg
+cp /vagrant/inventory /etc/rabbithole/inventory
+
+# Link to command in PATH
+ln -s /vagrant/rabbithole.py /usr/local/bin/rabbithole

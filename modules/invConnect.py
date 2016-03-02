@@ -2,7 +2,7 @@
 from __future__ import print_function
 from os import getlogin
 import re
-import common
+import rh.common as common
 
 # - Connect to a device using a name as specified in the inventory file
 # Syntax: connect [username@]deviceName
@@ -20,7 +20,7 @@ def connectCmd(config, args):
     username = getlogin()
     parts = args.split('@', 1)
     if len(parts) == 2:
-        if config.getboolean('ssh', 'allowSwitchUser'):
+        if config.getboolean('connect', 'allowSwitchUser'):
             username = parts[0]
         else:
             print("SSHing as another user is not allowed, using username:", username)

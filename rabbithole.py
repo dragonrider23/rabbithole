@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 from __future__ import print_function
 from subprocess import check_output, call
-from ConfigParser import SafeConfigParser
 from os import geteuid, getlogin
 import readline
 import sys
 import os.path
 
 # Package specific python modules/packages
-import common
+import rh.common as common
+from rh.config import RhConfig
 from modules import *
 
 # - Start a Bash shell
@@ -28,10 +28,10 @@ def echoCmd(_, args):
 # Syntax: shell
 def shellCmd(*_):
     # If root user and allowRootShell, drop to shell
-    if geteuid() == 0 and config.getboolean('global', 'allowRootShell'):
+    if geteuid() == 0 and config.getboolean('core', 'allowRootShell'):
         startShell()
     # If user is in allowed group
-    elif getlogin() in config.get('global', 'shellUsers').split(','):
+    elif getlogin() in config.get('core', 'shellUsers').split(','):
         startShell()
     else:
         print("Operation not permitted")
@@ -86,9 +86,8 @@ def loadConfig():
         sys.exit()
 
     # Parse configuration file
-    config = SafeConfigParser()
+    config = RhConfig()
     config.read(configFile)
-    config.__filename = configFile
 
 def main():
     loadConfig()
@@ -111,15 +110,15 @@ def main():
 
 
     # If user is root and rootBypass is enabled, just drop to a shell
-    if geteuid() == 0 and config.getboolean('global', 'rootBypass'):
+    if geteuid() == 0 and config.getboolean('core', 'rootBypass'):
         startShell()
         sys.exit()
 
     # The shell command is only available in interpreter mode
     common.registerCmd('shell', shellCmd, "Drop to a bash shell")
 
-    if config.getboolean('global', 'showMotd'):
-        printMotd(config.get('global', 'motdFile'))
+    if config.getboolean('core', 'showMotd'):
+        printMotd(config.get('core', 'motdFile'))
     printLoginHeader()
 
     # Main application loop

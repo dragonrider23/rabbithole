@@ -8,6 +8,9 @@ import shlex
 # Dict of {"func", "help", "alias"} indexed with a command name
 cmds = {}
 
+class RhSilentException(Exception):
+    pass
+
 # - Dynamically generate a help text for all registered commands
 # Syntax: help
 def helpCmd(*_):
@@ -59,25 +62,29 @@ def normalizeName(name):
 def callCmd(name, *args):
     name = normalizeName(name)
     try:
-        return __callCmd(name, *args)
+        return _callCmd(name, *args)
     except RuntimeError:
         print("Recursion loop detected for command '{}'".format(name))
-        return True
+    except RhSilentException as e:
+        _writeToErrorLog(e, name)
     except Exception as e:
         print("There was an error running the command '{}'".format(name))
-        errorMsg = "{} ERROR: Module: {} Message: {}\n".format(datetime.today(), name, e.message)
-        with open("error.log", 'a') as logfile:
-            logfile.write(errorMsg)
-        return True
+        _writeToErrorLog(e, name)
+    return True
 
-def __callCmd(name, *args):
+def _callCmd(name, *args):
     if name in cmds:
         if cmds[name]["alias"] != '':
-            return __callCmd(cmds[name]["alias"], *args)
+            return _callCmd(cmds[name]["alias"], *args)
 
         cmds[name]["func"](*args)
         return True
     return False
+
+def _writeToErrorLog(e, module):
+    errorMsg = "{} ERROR: Module: {} Message: {}\n".format(datetime.today(), module, e.message)
+    with open("error.log", 'a') as logfile:
+        logfile.write(errorMsg)
 
 # Register the help command
 registerCmd('help', helpCmd, "Display this text")

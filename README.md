@@ -69,7 +69,7 @@ RabbitHole is designed to be as extensible as possible. Commands are nothing mor
 
 These are the basics:
 
-- Import the common module `import common`.
+- Import the common module `import rh.common as common`.
 - Define your function to handle your new command. This function should accept two arguments, the application configuration object, and a string of args. It's the responsibility of the module to parse the argument string as needed. If you don't want either, use `*_` in your function definition to accept all arguments but by convention show you don't care about them.
 - Register your command. The function signature is `common.registerCmd(name, func, help)`. Name is what the user will type to use your function. Any spaces in the command name will be replaced with dashes (-) and the the command will be converted to all lowercase. Func is the function you defined earlier. Help is optional. It's the text that will show next to the command when a user types `help` at the prompt. Ex: `common.registerCmd('my-command', my_function, "This is my help text for the user")`.
 - You can register and alias to a command by calling `common.registerAlias(alias, command)`. Alias is the new command, command is what the alias will point to. Be careful not to cause a recursion loop.

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import common
+import rh.common as common
 
 # - Simple wrapper around ssh command
 # Syntax: ssh [normal ssh args]

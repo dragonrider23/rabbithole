@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import common
+import rh.common as common
 
 # -
 def rhCmd(config, args):
@@ -16,6 +16,7 @@ def infoCmd(args):
 commands = {
     'info': infoCmd
 }
+
 # Register commands
-common.registerCmd('rh', rhCmd, "Administrative commands")
-common.registerAlias('rabbithole', 'rh')
+#common.registerCmd('rh', rhCmd, "Administrative commands")
+#common.registerAlias('rabbithole', 'rh')
