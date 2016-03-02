@@ -11,6 +11,12 @@ def sshCmd(config, args):
 def telnetCmd(config, args):
     common.startProcess("telnet {}".format(args))
 
+# - Simple wrapper around telnet command
+# Syntax: telnet [normal telnet args]
+def pingCmd(config, args):
+    common.startProcess("ping {}".format(args))
+
 # Register commands
 common.registerCmd('ssh', sshCmd, "Connect to a device over ssh")
 common.registerCmd('telnet', telnetCmd, "Connect to a device over telnet")
+common.registerCmd('ping', pingCmd, "Normal ping")
