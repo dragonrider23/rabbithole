@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from __future__ import print_function
 from subprocess import check_output, call
-from os import geteuid, getlogin
+from os import geteuid, getlogin, getcwd
 import readline
 import sys
 import os.path
@@ -73,7 +73,7 @@ def loadConfig():
     # Find the location of a config file
     configOptions = [
         # Current directory
-        os.path.dirname(__file__)+"/rabbithole.cfg",
+        getcwd()+"/rabbithole.cfg",
         # Etc directory
         "/etc/rabbithole/rabbithole.cfg"
     ]
