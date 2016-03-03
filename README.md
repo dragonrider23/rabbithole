@@ -3,6 +3,8 @@ RabbitHole
 
 RabbitHole is an extensible, easy to use restrictive shell. It does offer an option to drop into Bash if needed. This functionality can of course be restricted to only certain users. This project was created with network administration in mind.
 
+RabbitHole requires Python 2.7+ or Python 3+.
+
 Install
 -------
 
