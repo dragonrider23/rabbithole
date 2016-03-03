@@ -1,7 +1,0 @@
-2016-03-02 15:51:17.710931 ERROR: Module: rh-config Message: No option 'core' in section: 'core'
-2016-03-02 15:55:17.318051 ERROR: Module: rh-config Message: No section: 'admin'
-2016-03-02 15:59:22.877423 ERROR: Module: rh-config Message: No section: 'admin'
-2016-03-02 16:07:57.596847 ERROR: Module: rh-config Message: 
-2016-03-02 16:08:55.854592 ERROR: Module: rh-config Message: 
-2016-03-02 16:09:49.472168 ERROR: Module: rh-config Message: 
-2016-03-02 16:10:55.970193 ERROR: Module: rh-config Message: No section: 'admin'

@@ -11,17 +11,17 @@ cmds = {}
 class RhSilentException(Exception):
     pass
 
-# - Dynamically generate a help text for all registered commands
+# - Dynamically generate a help text for all registered commands sorted in alphabetical order
 # Syntax: help
 def helpCmd(*_):
     print("RabbitHole SSH Portal\n\nCommands:")
-    for name, cmd in cmds.iteritems():
-        if cmd["alias"] != '':
-            print("\t{} - Alias for {}".format(name, cmd["alias"].upper()))
+    for name in sorted(cmds):
+        if cmds[name]["alias"] != '':
+            print("\t{} - Alias for {}".format(name, cmds[name]["alias"].upper()))
             continue
 
-        if cmd["help"] != '':
-            print("\t{} - {}".format(name, cmd["help"]))
+        if cmds[name]["help"] != '':
+            print("\t{} - {}".format(name, cmds[name]["help"]))
 
 # - Start a fully interactive process
 # cmd is a STRING with the full command and arguments

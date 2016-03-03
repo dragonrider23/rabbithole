@@ -21,6 +21,8 @@ def exitCmd(*_):
     print("Please come again")
     sys.exit()
 
+# - Just echo
+# Syntax: echo [anything]
 def echoCmd(_, args):
     print(args)
 

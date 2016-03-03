@@ -3,17 +3,17 @@ import rh.common as common
 
 # - Simple wrapper around ssh command
 # Syntax: ssh [normal ssh args]
-def sshCmd(config, args):
+def sshCmd(_, args):
     common.startProcess("ssh {}".format(args))
 
 # - Simple wrapper around telnet command
 # Syntax: telnet [normal telnet args]
-def telnetCmd(config, args):
+def telnetCmd(_, args):
     common.startProcess("telnet {}".format(args))
 
-# - Simple wrapper around telnet command
-# Syntax: telnet [normal telnet args]
-def pingCmd(config, args):
+# - Simple wrapper around ping command
+# Syntax: ping [normal ping args]
+def pingCmd(_, args):
     common.startProcess("ping {}".format(args))
 
 # Register commands

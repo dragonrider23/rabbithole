@@ -1,7 +1,7 @@
 RabbitHole
 ==========
 
-RabbitHole is a shell-like portal that can be used to restrict users to a subset of commands as specified by an administrator. It does offer a shell option to drop into Bash. This functionality can of course be restricted to only certain users. This project was created with network administration in mind.
+RabbitHole is an extensible, easy to use restrictive shell. It does offer an option to drop into Bash if needed. This functionality can of course be restricted to only certain users. This project was created with network administration in mind.
 
 Install
 -------
@@ -10,11 +10,12 @@ Installation is straight forward.
 
 1. Get the source code either straight from the git repo or via a release tarball.
 2. Extract the contents to a directory. For example `/usr/share/rabbithole` or even `/opt/rabbithole`.
-3. Move `rabbithole.cfg` and `inventory` to /etc/rabbithole
-4. Edit `rabbithole.cfg` as needed. Explanation of settings are in the file as comments.
-5. Edit `inventory` as needed. The format is explained in the file. This file is used in conjunction with the `connect` command.
-6. (optional) Make a symlink from `/usr/local/bin/rabbithole` to the `rabbithole.py` file you extracted earlier.
-7. (optional) Run rabbithole as root once so Python can compile the modules into bytecode. This will help with performance.
+3. Move `rabbithole.cfg.sample` to `/etc/rabbithole/rabbithole.cfg`
+4. Move`inventory` to /etc/rabbithole/inventory
+5. Edit `rabbithole.cfg` as needed. Explanation of settings are in the file as comments.
+6. Edit `inventory` as needed. The format is explained in the file. This file is used in conjunction with the `connect` command.
+7. (optional) Make a symlink from `/usr/local/bin/rabbithole` to the `rabbithole.py` file you extracted earlier.
+8. (optional) Run rabbithole as root once so Python can compile the modules into bytecode. This will help with performance.
 
 Example
 -------
@@ -26,8 +27,8 @@ $ wget [release tarball]
 $ mkdir /usr/share/rabbithole
 $ tar -zxvf rabbithole.tar.gz -C /usr/share/rabbithole
 $ mkdir /etc/rabbithole
-$ mv /usr/share/rabbithole/rabbithole.cfg /etc/rabbithole/
-$ mv /usr/share/rabbithole/inventory /etc/rabbithole/
+$ mv /usr/share/rabbithole/rabbithole.cfg.sample /etc/rabbithole/rabbithole.cfg
+$ mv /usr/share/rabbithole/inventory /etc/rabbithole/inventory
 # Edit the above files as needed
 $ ln -s /usr/share/rabbithole/rabbithole.py /usr/local/bin/rabbithole
 $ chmod +x /usr/share/rabbithole/rabbithole.py
@@ -49,21 +50,32 @@ Now everyone except root will go into the portal. Root will drop into a shell li
 Commands
 --------
 
-Here's a list of the default included commands:
+Here's a list of the included commands:
 
-- ssh - Simply wraps the ssh command, use like normal
-- telnet - Simply wraps the telnet command, use like normal
-- list [pattern] - List devices in the inventory file that begin with pattern
+Wrappers:
+
+- ping - Wrapper around ping command
+- ssh - Wrapper around ssh command
+- telnet - Wrapper around telnet command
+
+Device Connection:
+
 - connect [username@]device - Connect to a device in the inventory list. IP addresses and connection protocol are handled automatically
+- list [pattern] - List devices in the inventory file that begin with pattern
 
-Here's the "builtin" commands:
+Administration:
 
-- shell - Drop into a Bash session if in the allowed users list
+- rh-config - Manage the configuration through RabbitHole. Requires user to be in the adminUsers list.
+
+"Builtin" commands:
+
+- echo - Echo text to standard out
+- exit/quit/logout - Quit RabbitHole
 - help - Show the available commands and their help texts
-- exit - Quit RabbitHole
+- shell - Drop into a Bash session if in the allowed users list
 
-Creating Command Modules
-------------------------
+Creating Modules
+----------------
 
 RabbitHole is designed to be as extensible as possible. Commands are nothing more than python modules that have registered a handler function with the main script. All modules should be placed in the `modules` directory (usually at `/usr/share/rabbithole/modules`). Look at the existing modules for examples.
 
