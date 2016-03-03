@@ -50,7 +50,7 @@ def printLoginHeader():
     ll = 'Unknown'
     # Windows/cygwin doesn't have have 'last'
     if not sys.platform == 'win32' and not sys.platform == 'cygwin':
-        ll = check_output("last -1 -R  $USER | head -1 | cut -c 23-41", shell=True).rstrip()
+        ll = check_output("last -1 -R  $USER | head -1 | cut -c 23-41", shell=True).decode("utf-8").rstrip()
     print("Type help to see available commands\nLast login: {}".format(ll))
 
 ## - Main Script
@@ -123,10 +123,16 @@ def main():
         printMotd(config.get('core', 'motdFile'))
     printLoginHeader()
 
+    # Python 3 doesn't have raw_input
+    inputFunc = input
+    if sys.version_info.major == 2:
+        inputFunc = raw_input
+
     # Main application loop
     while True:
         try:
-            cmd = raw_input(os.getlogin() + '> ').strip()
+            cmd = inputFunc(os.getlogin() + '> ')
+
         except KeyboardInterrupt:
             print('\n')
             exitCmd()

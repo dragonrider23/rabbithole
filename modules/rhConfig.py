@@ -1,7 +1,12 @@
 #! /usr/bin/env python
 from os import getlogin
-from ConfigParser import NoOptionError, NoSectionError
+from sys import version_info
 import rh.common as common
+
+if version_info.major == 3:
+    from configparser import NoOptionError, NoSectionError
+else:
+    from ConfigParser import NoOptionError, NoSectionError
 
 # Manage the rabbithole configuration
 def configCmd(config, args):

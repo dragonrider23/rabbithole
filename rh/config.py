@@ -1,4 +1,9 @@
-from ConfigParser import SafeConfigParser
+from sys import version_info
+
+if version_info.major == 3:
+    from configparser import SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
 
 class RhConfig(SafeConfigParser):
     _filename = ''
