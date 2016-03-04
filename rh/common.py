@@ -7,6 +7,7 @@ import shlex
 
 # Dict of {"func", "help", "alias"} indexed with a command name
 cmds = {}
+inits = []
 
 class RhSilentException(Exception):
     pass
@@ -37,6 +38,15 @@ def startProcess(cmd):
         print('', end='')
     finally:
         process.wait()
+
+# - Register and initialization function, used by modules
+def registerInit(func):
+    inits.append(func)
+
+# - Call the initialization functions in the order of registration
+def initialize(*args):
+    for f in inits:
+        f(*args)
 
 # - Register a command
 # name (string) - Command name, what the user will type in

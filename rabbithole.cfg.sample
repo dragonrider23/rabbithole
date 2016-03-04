@@ -1,29 +1,41 @@
 # RabbitHole Config
 
-# Configuration for the core of RabbitHole
 [core]
 # If ran by root, drop immediately to shell
 rootBypass = yes
+
 # Allow root to access the shell regardless of the shellUsers setting
 allowRootShell = yes
+
 # Comma delimited list of usernames who can run a shell
 shellUsers = vagrant
+
 # Comma delimited list of usernames who can run admin commands
 adminUsers = vagrant
+
 # Show a Message of the Day
 showMotd = no
+
 # What file to show for the MOTD
 motdFile = /etc/motd
 
+# Comma delimited list of system commands to expose
+# These commands will be allowed to run without restrictions other than what's
+# already imposed with user/group permissions.
+wrappedCommands = ssh,telnet,ping
+
 [connect]
 # Allow users to ssh using a different username with username@device
-# This setting only affects the "connect" command
 allowSwitchUser = yes
+
 # File to load as inventory
 inventory = /etc/rabbithole/inventory
+
 # SSH into another device to access inventory devices
 useProxy = no
+
 # Address of machine to proxy through
 proxyAddress = 192.168.1.0
+
 # Defaults to the user running rabbithole
 proxyUser =

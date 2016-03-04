@@ -90,9 +90,13 @@ def loadConfig():
     # Parse configuration file
     config = RhConfig()
     config.read(configFile)
+    if len(sys.argv) > 1 and sys.argv[1] == '-v':
+        print("Config File: {}".format(configFile))
+        del sys.argv[1]
 
 def main():
     loadConfig()
+    common.initialize(config)
 
     # Register "builtin" commands
     common.registerCmd('exit', exitCmd, "Close this ssh connection")
