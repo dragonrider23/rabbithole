@@ -3,3 +3,4 @@
 *.pyo
 error.log
 *.cfg
+__pycache__
