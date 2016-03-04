@@ -84,13 +84,12 @@ RabbitHole is designed to be as extensible as possible. Commands are nothing mor
 These are the basics:
 
 - Import the common module `import rh.common as common`.
-- Define your function to handle your new command. This function should accept two arguments, the application configuration object, and a string of args. It's the responsibility of the module to parse the argument string as needed. If you don't want either, use `*_` in your function definition to accept all arguments but by convention show you don't care about them.
-- Register your command. The function signature is `common.registerCmd(name, func, help)`. Name is what the user will type to use your function. Any spaces in the command name will be replaced with dashes (-) and the the command will be converted to all lowercase. Func is the function you defined earlier. Help is optional. It's the text that will show next to the command when a user types `help` at the prompt. Ex: `common.registerCmd('my-command', my_function, "This is my help text for the user")`.
-- You can register and alias to a command by calling `common.registerAlias(alias, command)`. Alias is the new command, command is what the alias will point to. Be careful not to cause a recursion loop.
-
-To disable a module, the best thing to do is change the .py extension on the module and if there's a file with the same name but with the extension .pyc, delete it. If you don't delete the .pyc file, the Python interpreter will still load the module.
+- Define your function to handle your new command. This function must accept at least two arguments, the application configuration object, and a string of args. It's the responsibility of the module to parse the argument string as needed. If you don't want either, use `*_` in your function definition to accept all arguments but by convention show you don't care about them.
+- Register your command. The function signature is `common.registerCmd(name, func, help='')`. Name is what the user will type to use your function. Any spaces in the command name will be replaced with dashes (-) and the the command will be converted to all lowercase. Func is the function you defined earlier. Help is optional. It's the text that will show next to the command when a user types `help` at the prompt. Ex: `common.registerCmd('my-command', my_function, "This is my help text for the user")`.
+- You can register an alias to a command by calling `common.registerAlias(alias, command)`. Alias is the new command, command is what the alias will point to. Be careful not to cause a recursion loop.
+- If your module needs to do some initialization before it can be called, you can register an init function by calling `common.registerInit(func)`. The provided function must accept at least one parameter which will be an RhConfig(SafeConfigParser) object.
 
 License
 -------
 
-Due to the use of Python's readline module, I'm forced to release this code under the GNU General Public License version 3.
+This software is released as truly free software under the terms of the BSD-3 Clause license.
