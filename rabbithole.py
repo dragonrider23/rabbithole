@@ -129,15 +129,10 @@ def main():
         printMotd(config.get('core', 'motdFile'))
     printLoginHeader()
 
-    # Python 3 doesn't have raw_input
-    inputFunc = input
-    if sys.version_info.major == 2:
-        inputFunc = raw_input
-
     # Main application loop
     while True:
         try:
-            cmd = inputFunc(config.rhGetData('username', 'RabbitHole') + '> ')
+            cmd = common.getInput(config.rhGetData('username', 'RabbitHole') + '> ')
 
         except KeyboardInterrupt:
             print('\n')
