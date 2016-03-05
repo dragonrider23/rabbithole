@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from __future__ import print_function
 from subprocess import Popen
 from datetime import datetime
@@ -92,8 +91,8 @@ def _callCmd(name, *args):
     return False
 
 def _writeToErrorLog(e, module):
-    errorMsg = "{} ERROR: Module: {} Message: {}\n".format(datetime.today(), module, e.message)
-    with open("error.log", 'a') as logfile:
+    errorMsg = "{} ERROR: Module: {} Message: {}\n".format(datetime.today(), module, str(e))
+    with open("/vagrant/error.log", 'a') as logfile:
         logfile.write(errorMsg)
 
 # Register the help command

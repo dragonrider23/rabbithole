@@ -28,12 +28,12 @@ def echoCmd(_, args):
 
 # - Start a shell
 # Syntax: shell
-def shellCmd(*_):
+def shellCmd(config, _):
     # If root user and allowRootShell, drop to shell
     if geteuid() == 0 and config.getboolean('core', 'allowRootShell'):
         startShell()
     # If user is in allowed group
-    elif getlogin() in config.get('core', 'shellUsers').split(','):
+    elif config.rhGetData('username') in config.get('core', 'shellUsers').split(','):
         startShell()
     else:
         print("Operation not permitted")
@@ -96,6 +96,7 @@ def loadConfig():
 
 def main():
     loadConfig()
+    config.rhAddData('username', getlogin())
     common.initialize(config)
 
     # Register "builtin" commands
@@ -117,6 +118,7 @@ def main():
 
     # If user is root and rootBypass is enabled, just drop to a shell
     if geteuid() == 0 and config.getboolean('core', 'rootBypass'):
+        print("RabbitHole: Root bypass enabled, starting Bash shell...")
         startShell()
         sys.exit()
 
@@ -135,7 +137,7 @@ def main():
     # Main application loop
     while True:
         try:
-            cmd = inputFunc(os.getlogin() + '> ')
+            cmd = inputFunc(config.rhGetData('username', 'RabbitHole') + '> ')
 
         except KeyboardInterrupt:
             print('\n')

@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from os import getlogin
 from sys import version_info
 import rh.common as common

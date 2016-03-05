@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 import rh.common as common
 
 # -

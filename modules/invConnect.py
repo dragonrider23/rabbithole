@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from __future__ import print_function
 from os import getlogin
 import re
@@ -8,7 +7,7 @@ import rh.common as common
 # Syntax: connect [username@]deviceName
 def connectCmd(config, args):
     try:
-        file = open(config.get('connect', 'inventory'), 'r')
+        invFile = open(config.get('connect', 'inventory'), 'r')
     except:
         print("An error occured reading the inventory file")
         return
@@ -30,7 +29,7 @@ def connectCmd(config, args):
     args = re.escape(args)
     reg = re.compile('^'+args+'\s', re.IGNORECASE)
     matchedDevice = []
-    for line in file:
+    for line in invFile:
         if reg.search(line):
             matchedDevice = line.strip().split(' ')
             break

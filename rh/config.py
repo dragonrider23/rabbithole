@@ -7,6 +7,7 @@ else:
 
 class RhConfig(SafeConfigParser):
     _filename = ''
+    _rhData = {}
 
     def __init__(self):
         SafeConfigParser.__init__(self)
@@ -21,3 +22,16 @@ class RhConfig(SafeConfigParser):
 
     def reload(self):
         return SafeConfigParser.read(self, self._filename)
+
+    def rhAddData(self, name, value):
+        name = self.rhNormalizeName(name)
+        self._rhData[name] = value
+
+    def rhGetData(self, name, default=None):
+        name = self.rhNormalizeName(name)
+        if name in self._rhData:
+            return self._rhData[name]
+        return default
+
+    def rhNormalizeName(self, name):
+        return name.lower().replace(' ', '-')
