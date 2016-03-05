@@ -3,4 +3,5 @@
 *.pyo
 error.log
 *.cfg
-__pycache__
+__pycache__/
+private/
