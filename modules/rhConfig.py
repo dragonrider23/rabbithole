@@ -49,7 +49,7 @@ def getConfig(config, args):
         print("Section [{}] doesn't exist".format(args[0]))
     except Exception as e:
         print("Error getting setting [{}] {}".format(args[0], args[1]))
-        raise common.RhSilentException(e.message)
+        raise common.RhSilentException(str(e))
 
 # Syntax: rh-config set [section] [setting] [value]
 def setConfig(config, args):
