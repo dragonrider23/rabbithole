@@ -17,7 +17,7 @@ class RhConfig(SafeConfigParser):
         return SafeConfigParser.read(self, self._filename)
 
     def save(self):
-        fp = open(self._filename, 'w+')
+        fp = open(self._filename, 'w')
         return SafeConfigParser.write(self, fp)
 
     def reload(self):

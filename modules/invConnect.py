@@ -5,18 +5,19 @@ import rh.common as common
 
 # - Connect to a device using a name as specified in the inventory file
 # Syntax: connect [username@]deviceName
-def connectCmd(config, args):
+def _connectCmd(config, args):
     try:
         invFile = open(config.get('connect', 'inventory'), 'r')
-    except:
+    except IOError as e:
         print("An error occured reading the inventory file")
+        raise common.RhSilentException(str(e))
         return
 
     if args == '':
         print("What device should I connect to?")
         return
 
-    username = getlogin()
+    username = config.rhGetData('username')
     parts = args.split('@', 1)
     if len(parts) == 2:
         if config.getboolean('connect', 'allowSwitchUser'):
@@ -35,11 +36,11 @@ def connectCmd(config, args):
             break
 
     if matchedDevice == []:
-        print("No device found with name "+args)
+        print("No device found with name", args)
         return
 
     if len(matchedDevice) < 3:
-        print("Incorrect line format for device "+args)
+        print("Incorrect line format for device", args)
         return
 
     if config.getboolean('connect', 'useProxy'):
@@ -53,7 +54,7 @@ def _connect(config, device, username):
     elif device[2] == 'telnet':
         common.callCmd('telnet', config, device[1])
     else:
-        print("Unknown connection type "+device[2])
+        print("Unknown connection type", device[2])
 
 def _connectProxy(config, device, username):
     # ssh proxyUser@proxyAddress -tt ssh username@address
@@ -75,9 +76,9 @@ def _connectProxy(config, device, username):
 
 # - Search for and list devices by a pattern
 # Syntax: list [pattern]
-def listCmd(config, args):
+def _listCmd(config, args):
     try:
-        file = open(config.get('connect', 'inventory'), 'r')
+        f = open(config.get('connect', 'inventory'), 'r')
     except:
         print("An error occured reading the inventory file")
         return
@@ -91,7 +92,7 @@ def listCmd(config, args):
     reg = re.compile('^'+args, re.IGNORECASE)
     matchedDevices = []
 
-    for line in file:
+    for line in f:
         if reg.search(line):
             matchedDevices.append(line.split(' ', 1)[0])
 
@@ -110,5 +111,5 @@ def listCmd(config, args):
         print()
 
 # Register commands
-common.registerCmd('connect', connectCmd, "Connect to a device by name")
-common.registerCmd('list', listCmd, "Search the inventory for devices that start with [pattern]")
+common.registerCmd('connect', _connectCmd, "Connect to a device by name")
+common.registerCmd('list', _listCmd, "Search the inventory for devices that start with [pattern]")

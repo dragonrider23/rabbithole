@@ -8,7 +8,7 @@ else:
     from ConfigParser import NoOptionError, NoSectionError
 
 # Manage the rabbithole configuration
-def configCmd(config, args):
+def _configCmd(config, args):
     if not getlogin() in config.get('core', 'adminUsers').split(','):
         print("Operation not permitted")
         return
@@ -20,9 +20,9 @@ def configCmd(config, args):
         subArgs = headSplit[1]
 
     if subCmd == 'set':
-        setConfig(config, subArgs)
+        _setConfig(config, subArgs)
     elif subCmd == 'get':
-        getConfig(config, subArgs)
+        _getConfig(config, subArgs)
     elif subCmd == 'reload':
         try:
             config.reload()
@@ -33,7 +33,7 @@ def configCmd(config, args):
         print("Syntax: rh-config get|set|reload")
 
 # Syntax: rh-config get [section] [setting]
-def getConfig(config, args):
+def _getConfig(config, args):
     args = args.split(' ')
     if len(args) == 1:
         args.insert(0, 'core')
@@ -52,7 +52,7 @@ def getConfig(config, args):
         raise common.RhSilentException(str(e))
 
 # Syntax: rh-config set [section] [setting] [value]
-def setConfig(config, args):
+def _setConfig(config, args):
     args = args.split(' ')
     if len(args) == 2:
         args.insert(0, 'core')
@@ -73,4 +73,4 @@ def setConfig(config, args):
         raise common.RhSilentException(e)
 
 # Register commands
-common.registerCmd('rh-config', configCmd, "Manage rabbithole configuration")
+common.registerCmd('rh-config', _configCmd, "Manage rabbithole configuration")
