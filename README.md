@@ -68,6 +68,7 @@ Device Connection:
 Administration:
 
 - rh-config - Manage the configuration through RabbitHole. Requires user to be in the adminUsers list.
+- ssh-keys - Manage the authorized_keys for SSH
 
 "Builtin" commands:
 

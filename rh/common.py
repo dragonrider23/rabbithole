@@ -46,6 +46,9 @@ def callCmd(name, *args):
     name = _normalizeName(name)
     try:
         return _callCmd(name, *args)
+    except KeyboardInterrupt:
+        print()
+        return True
     except RuntimeError:
         print("Recursion loop detected for command '{}'".format(name))
     except RhSilentException as e:

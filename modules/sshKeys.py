@@ -20,6 +20,8 @@ def _authorizedKeysCmd(config, args):
         _deleteSshKeys(config, args[1:])
     elif args[0] == 'add':
         _addSshKeys(config, args[1:])
+    else:
+        print("Usage: ssh-keys list|delete|add")
 
 common.registerCmd('ssh-keys', _authorizedKeysCmd, "Manage authorized keys file for SSHd server")
 
