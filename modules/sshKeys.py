@@ -1,6 +1,6 @@
 from __future__ import print_function
 from sys import version_info
-import os.path
+import os, os.path, stat
 import rh.common as common
 
 _sshKeyTypes = [
@@ -28,13 +28,12 @@ common.registerCmd('ssh-keys', _authorizedKeysCmd, "Manage authorized keys file 
 # List SSH authorized keys
 def _listSshKeys(config, args):
     full = False
-    lines = []
     keysFile = os.path.expanduser("~/.ssh/authorized_keys")
     if len(args) > 0 and args[0] == 'full': full = True
 
-    # Get all key lines from authorized_keys file
+    lines = []
     try:
-        with open(keysFile, 'r') as keyFile: lines = _filterKeyFileLines(keyFile)
+        lines = _getAuthKeyFileLines()
     except IOError:
         print("No authorized keys file found")
         return
@@ -55,7 +54,7 @@ def _deleteSshKeys(config, args):
 
     lines = []
     try:
-        with open(keysFile, 'r') as keyFile: lines = _filterKeyFileLines(keyFile)
+        lines = _getAuthKeyFileLines()
     except IOError:
         print("No authorized keys file found")
         return
@@ -75,11 +74,9 @@ def _deleteSshKeys(config, args):
 
 # Interactively add a new SSH authorized key
 def _addSshKeys(config, args):
-    keysFile = os.path.expanduser("~/.ssh/authorized_keys")
-
     lines = []
     try:
-        with open(keysFile, 'r') as keyFile: lines = _filterKeyFileLines(keyFile)
+        lines = _getAuthKeyFileLines()
     except IOError:
         print("No authorized keys file found")
         return
@@ -112,6 +109,29 @@ def _addSshKeys(config, args):
         print("Error adding new key")
         raise common.RhSilentException(str(e))
     print("New kew added")
+
+# Gets the lines from an authorized_keys file and returns them as a list
+# This function will create the .ssh directory and/or the authorized_keys file
+# if they don't already exist and set the required Permissions.
+def _getAuthKeyFileLines():
+    sshDir = os.path.expanduser("~/.ssh")
+    keysFile = os.path.join(sshDir, "authorized_keys")
+    lines = []
+    # Create file if doesn't exist
+    if not os.path.isfile(keysFile):
+        # Create directory if doesn't exist
+        if not os.path.isdir(sshDir):
+            os.mkdir(sshDir)
+            os.chmod(sshDir, stat.S_IRWXU) # Permissions: 700
+        open(keysFile, 'a').close() # Create and empty file
+        os.chmod(keysFile, stat.S_IRUSR|stat.S_IWUSR) # Permissions: 600
+        return []
+
+    # If it does exist, read and return lines
+    with open(keysFile, 'r') as keyFile:
+        lines = _filterKeyFileLines(keyFile)
+    return lines
+
 
 # Filter authorized_keys lines by removing comments and empty lines
 # Works on a file descriptor or list
