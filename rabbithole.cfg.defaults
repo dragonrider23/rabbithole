@@ -11,12 +11,12 @@ rootBypass = yes
 allowRootShell = yes
 
 # Comma delimited list of usernames who will go immediately to a shell
-userBypass = test
+userBypass = root
 
 # Comma delimited list of usernames who can run a shell
 shellUsers = root
 
-# What shell should be started, defaults to "/bin/bash --login"
+# What shell should be started
 shell = /bin/bash --login
 
 # Comma delimited list of usernames who can run admin commands
