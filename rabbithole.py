@@ -1,21 +1,23 @@
 #! /usr/bin/env python
 from __future__ import print_function
 from subprocess import check_output, call
-from os import geteuid, getlogin, getcwd
+import os
 import readline
 import sys
 import os.path
+import getopt
+import pwd
 
 # Package specific python modules/packages
 import rh.common as common
-from rh.config import RhConfig
+import rh.config as rhconfig
 from modules import *
 
-# - Start a Bash shell
+version = '1.2.0'
+
+# - Start a shell
 def startShell(config):
-    shell = config.get('core','shell')
-    if shell == '': shell = "/bin/bash --login"
-    common.startProcess(shell)
+    common.startProcess(config.get('core','shell'))
 
 # - Exit from portal
 # Syntax: exit
@@ -28,17 +30,23 @@ def exitCmd(*_):
 def echoCmd(_, args):
     print(args)
 
+# - Print version number
+# Syntax: version
+def versionCmd(config, _):
+    print(config.rhGetData('version'))
+
 # - Start a shell
 # Syntax: shell
 def shellCmd(config, _):
-    # If root user and allowRootShell, drop to shell
-    if geteuid() == 0 and config.getboolean('core', 'allowRootShell'):
-        startShell(config)
-    # If user is in allowed group
-    elif config.rhGetData('username') in config.get('core', 'shellUsers').split(','):
-        startShell(config)
-    else:
+    if not config.rhGetData('username') in config.get('core', 'shellUsers').split(','):
         print("Operation not permitted")
+        return
+    startShell(config)
+
+# - Display current username
+# Syntax: whoami
+def whoamiCmd(config, _):
+    print(config.rhGetData('username'))
 
 # - Print a Message of the Day
 def printMotd(file):
@@ -55,8 +63,11 @@ def printLoginHeader():
         ll = check_output("last -1 -R  $USER | head -1 | cut -c 23-41", shell=True).decode("utf-8").rstrip()
     print("Type help to see available commands\nLast login: {}".format(ll))
 
+def printUsage():
+    print("Usage: {} [-c config] [-v] [-h]".format(os.path.basename(sys.argv[0])))
+
 ## - Main Script
-def processCmd(cmd):
+def processCmd(config, cmd):
     # Separate command from arguments
     cmdParts = cmd.split(' ', 1)
     head = cmdParts[0]
@@ -68,37 +79,39 @@ def processCmd(cmd):
     if not common.callCmd(head, config, args):
         print("RabbitHole: Unknown command '{}'".format(head))
 
-def loadConfig():
-    global config
-    configFile = ''
+def main(argv):
+    cliConfigArg = ''
+    cliCommand = ''
+    cliVerboseOutput = False
 
-    # Find the location of a config file
-    configOptions = [
-        # Current directory
-        getcwd()+"/rabbithole.cfg",
-        # Etc directory
-        "/etc/rabbithole/rabbithole.cfg"
-    ]
+    # Detect if a command was given as an argument
+    if '--' in argv:
+        cliCommand = ' '.join(argv[argv.index('--')+1:])
+        argv = argv[:argv.index('--')]
 
-    for filename in configOptions:
-        if os.path.isfile(filename):
-            configFile = filename
-            break
+    # Parse cli flags
+    try:
+        opts, args = getopt.getopt(argv,"c:hv",["help","config=","verbose"])
+    except getopt.GetoptError:
+        printUsage()
+        sys.exit(2)
 
-    if configFile == '':
-        print("RabbitHole SSH Portal\n\nNo configuration file found.\nPlease alert the system administrator.")
-        sys.exit()
+    for opt, arg in opts:
+        if opt in ('-h', "--help"):
+            printUsage()
+            sys.exit()
+        elif opt in ('-c', "--config"):
+            cliConfigArg = arg
+        elif opt in ('-v', "--verbose"):
+            cliVerboseOutput = True
 
-    # Parse configuration file
-    config = RhConfig()
-    config.read(configFile)
-    if len(sys.argv) > 1 and sys.argv[1] == '-v':
-        print("Config File: {}".format(configFile))
-        del sys.argv[1]
-
-def main():
-    loadConfig()
-    config.rhAddData('username', getlogin())
+    # Load and populate configuration
+    config = rhconfig.loadConfig(cliConfigArg)
+    if cliVerboseOutput: print("Config File: {}".format(config.getFilename()))
+    username = pwd.getpwuid(os.geteuid())[0]
+    config.rhAddData('username', username)
+    config.rhAddData('version', version)
+    config.rhAddData('verbose', cliVerboseOutput)
     common.initialize(config)
 
     # Register "builtin" commands
@@ -106,26 +119,41 @@ def main():
     common.registerAlias('quit', 'exit')
     common.registerAlias('logout', 'exit')
     common.registerCmd('echo', echoCmd, "Echo, echo, echo, echo")
-
-    # If main is called with arguments, process them as a command then exit
-    if len(sys.argv) > 1:
-        processCmd(' '.join(sys.argv[1:]))
-        sys.exit()
+    common.registerCmd('version', versionCmd, "Print version of RabbitHole")
+    common.registerCmd('whoami', whoamiCmd, "Print current username")
 
     # Check if someone SSHed into the machine with a command
     if os.getenv('SSH_ORIGINAL_COMMAND', '') != '':
-        processCmd(os.getenv('SSH_ORIGINAL_COMMAND'))
+        processCmd(config, os.getenv('SSH_ORIGINAL_COMMAND'))
         sys.exit()
 
+    # If main is called with a command, process it then exit
+    if cliCommand != '':
+        processCmd(config, cliCommand)
+        sys.exit()
 
-    # If user is root and rootBypass is enabled, just drop to a shell
-    if geteuid() == 0 and config.getboolean('core', 'rootBypass'):
-        print("RabbitHole: Root bypass enabled, starting Bash shell...")
+    # If rootBypass is enabled, add root to userBypass list
+    # Kept for backwards compatibility
+    if config.getboolean('core', 'rootBypass'):
+        ub = config.get('core', 'userBypass')+",root"
+        ub = ub.lstrip(',')
+        config.set('core', 'userBypass', ub)
+
+    # If user is in the bypass group, drop to shell
+    if username != '' and username in config.get('core', 'userBypass').split(','):
+        print("Shell bypass...")
         startShell(config)
         sys.exit()
 
+    # If allowRootShell is enabled, add root to shellUsers list
+    # Kept for backwards compatibility
+    if config.getboolean('core', 'allowRootShell'):
+        ub = config.get('core', 'shellUsers')+",root"
+        ub = ub.lstrip(',')
+        config.set('core', 'shellUsers', ub)
+
     # The shell command is only available in interpreter mode
-    common.registerCmd('shell', shellCmd, "Drop to a bash shell")
+    common.registerCmd('shell', shellCmd, "Drop to a shell")
 
     if config.getboolean('core', 'showMotd'):
         printMotd(config.get('core', 'motdFile'))
@@ -135,15 +163,12 @@ def main():
     while True:
         try:
             cmd = common.getInput(config.rhGetData('username', 'RabbitHole') + '> ')
-
         except KeyboardInterrupt:
             print('\n')
             exitCmd()
 
         if cmd != '':
-            processCmd(cmd)
+            processCmd(config, cmd)
 
-# Global var for SafeConfigParser
-config = None
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

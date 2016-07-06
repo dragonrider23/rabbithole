@@ -81,7 +81,9 @@ Administration:
 - echo - Echo text to standard out
 - exit/quit/logout - Quit RabbitHole
 - help - Show the available commands and their help texts
-- shell - Drop into a Bash session if in the allowed users list
+- shell - Drop into the configured shell, by default Bash
+- version - Print current script version
+- whoami - Print current username
 
 Creating Modules
 ----------------
