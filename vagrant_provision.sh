@@ -4,11 +4,15 @@
 adduser --disabled-password --gecos "" tester
 echo "tester:a" | chpasswd
 
+CONFIG=/etc/rabbithole/rabbithole.cfg
+
 # Configure rabbithole
 mkdir /etc/rabbithole
-cp /vagrant/rabbithole.cfg.sample /vagrant/rabbithole.cfg.vagrant
-ln -s /vagrant/rabbithole.cfg.vagrant /etc/rabbithole/rabbithole.cfg
 cp /vagrant/inventory /etc/rabbithole/inventory
+ln -s /vagrant/rabbithole.cfg.defaults /etc/rabbithole/rabbithole.cfg.defaults
+echo '[core]' > $CONFIG
+echo 'adminUsers = vagrant' >> $CONFIG
+echo 'shellUsers = vagrant' >> $CONFIG
 
 # Link to command in PATH
 ln -s /vagrant/rabbithole.py /usr/local/bin/rabbithole

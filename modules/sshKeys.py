@@ -23,7 +23,7 @@ def _authorizedKeysCmd(config, args):
     else:
         print("Usage: ssh-keys list|delete|add")
 
-common.registerCmd('ssh-keys', _authorizedKeysCmd, "Manage authorized keys file for SSHd server")
+common.registerCmd('ssh-keys', _authorizedKeysCmd, "Manage authorized keys file")
 
 # List SSH authorized keys
 def _listSshKeys(config, args):

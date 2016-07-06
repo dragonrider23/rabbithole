@@ -1,10 +1,11 @@
 from __future__ import print_function
 from os import getlogin
 import re
+import socket
 import rh.common as common
 
 # - Connect to a device using a name as specified in the inventory file
-# Syntax: connect [username@]deviceName
+# Syntax: connect [username@]deviceName|address
 def _connectCmd(config, args):
     try:
         invFile = open(config.get('connect', 'inventory'), 'r')
@@ -28,10 +29,11 @@ def _connectCmd(config, args):
         args = parts[1]
 
     args = re.escape(args)
-    reg = re.compile('^'+args+'\s', re.IGNORECASE)
+    reg = re.compile('\\b'+args+'\\b', re.IGNORECASE)
     matchedDevice = []
     for line in invFile:
-        if reg.search(line):
+        searchLine = line.rsplit(' ', 1)[0] # Strip off the protocol for search
+        if reg.search(searchLine):
             matchedDevice = line.strip().split(' ')
             break
 
@@ -43,6 +45,7 @@ def _connectCmd(config, args):
         print("Incorrect line format for device", args)
         return
 
+    print("Connecting to {}({})".format(matchedDevice[0], matchedDevice[1]))
     if config.getboolean('connect', 'useProxy'):
         _connectProxy(config, matchedDevice, username)
     else:
@@ -89,12 +92,12 @@ def _listCmd(config, args):
     else:
         args = re.escape(args)
 
-    reg = re.compile('^'+args, re.IGNORECASE)
+    reg = re.compile('\\b'+args, re.IGNORECASE)
     matchedDevices = []
-
     for line in f:
-        if reg.search(line):
-            matchedDevices.append(line.split(' ', 1)[0])
+        searchLine = line.rsplit(' ', 1)[0] # Strip off the protocol for search
+        if reg.search(searchLine):
+            matchedDevices.append(line.strip().split(' '))
 
     print("Matched Devices:")
     if len(matchedDevices) == 0:
@@ -103,7 +106,7 @@ def _listCmd(config, args):
         # TODO: Fix this to show 4 devices per row with consistant formatting
         # print("\t", end='')
         for i, val in enumerate(matchedDevices):
-            print('\t'+val)
+            print("\t{}: {}@{}".format(val[0], val[2], val[1]))
             # print(val, end='\t')
             # if (i+1) % 4 == 0 and (i+1) != len(matchedDevices):
             #     print('\n\t', end='')
@@ -111,5 +114,5 @@ def _listCmd(config, args):
         print()
 
 # Register commands
-common.registerCmd('connect', _connectCmd, "Connect to a device by name")
-common.registerCmd('list', _listCmd, "Search the inventory for devices that start with [pattern]")
+common.registerCmd('connect', _connectCmd, "Connect to a device by name or IP")
+common.registerCmd('list', _listCmd, "Search the inventory for devices or IP addresses that start with [pattern]")

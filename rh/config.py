@@ -1,9 +1,19 @@
-from sys import version_info
+import sys
+from os import getcwd
+import os.path
 
-if version_info.major == 3:
+if sys.version_info.major == 3:
     from configparser import SafeConfigParser
 else:
     from ConfigParser import SafeConfigParser
+
+defaultsFile = "/etc/rabbithole/rabbithole.cfg.defaults"
+configFileLocations = [
+    # Current directory
+    getcwd()+"/rabbithole.cfg",
+    # Etc directory
+    "/etc/rabbithole/rabbithole.cfg"
+]
 
 class RhConfig(SafeConfigParser):
     _filename = ''
@@ -18,10 +28,14 @@ class RhConfig(SafeConfigParser):
 
     def save(self):
         fp = open(self._filename, 'w')
-        return SafeConfigParser.write(self, fp)
+        SafeConfigParser.write(self, fp)
+        fp.close()
 
     def reload(self):
         return SafeConfigParser.read(self, self._filename)
+
+    def getFilename(self):
+        return self._filename
 
     def rhAddData(self, name, value):
         name = self.rhNormalizeName(name)
@@ -35,3 +49,21 @@ class RhConfig(SafeConfigParser):
 
     def rhNormalizeName(self, name):
         return name.lower().replace(' ', '-')
+
+def loadConfig(configFile=''):
+    if configFile == '' or not os.path.isfile(configFile):
+        configFile=''
+        for filename in configFileLocations:
+            if os.path.isfile(filename):
+                configFile = filename
+                break
+
+    if configFile == '':
+        print("RabbitHole SSH Portal\n\nNo configuration file found.\nPlease alert the system administrator.")
+        sys.exit()
+
+    # Parse configuration file
+    config = RhConfig()
+    config.read(defaultsFile)
+    config.read(os.path.abspath(configFile))
+    return config

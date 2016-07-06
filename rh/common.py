@@ -27,10 +27,14 @@ def initialize(*args):
 # help (string) - Help text to display (optional)
 def registerCmd(name, func, helpText=''):
     name = _normalizeName(name)
+    if name in cmds:
+        _writeToErrorLog("Core", "Command {} is being redeclared".format(name))
     cmds[name] = {"func": func, "help": helpText, "alias": ''}
 
 def registerAlias(alias, cmd):
     alias = _normalizeName(alias)
+    if alias in cmds:
+        _writeToErrorLog("Core", "Command {} is being redeclared".format(alias))
     cmds[alias] = {"func": None, "help": '', "alias": cmd}
 
 # - Register a help text for a command. Used if registerCmd has already been called
@@ -115,3 +119,6 @@ def getInputNoHistory(prompt=''):
     inp = getInput(prompt)
     if inp != '': readline.remove_history_item(readline.get_current_history_length()-1)
     return inp
+
+def notImplemented():
+    print("Not implemented yet")
