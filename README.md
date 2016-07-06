@@ -13,7 +13,7 @@ Installation is straight forward.
 1. Get the source code either straight from the git repo or via a release tarball.
 2. Extract the contents to a directory. For example `/usr/share/rabbithole` or even `/opt/rabbithole`.
 3. Move `rabbithole.cfg.sample` to `/etc/rabbithole/rabbithole.cfg`
-4. Move`inventory` to /etc/rabbithole/inventory
+4. Move `inventory` to /etc/rabbithole/inventory
 5. Edit `rabbithole.cfg` as needed. Explanation of settings are in the file as comments.
 6. Edit `inventory` as needed. The format is explained in the file. This file is used in conjunction with the `connect` command.
 7. (optional) Make a symlink from `/usr/local/bin/rabbithole` to the `rabbithole.py` file you extracted earlier.
@@ -36,6 +36,11 @@ $ ln -s /usr/share/rabbithole/rabbithole.py /usr/local/bin/rabbithole
 $ chmod +x /usr/share/rabbithole/rabbithole.py
 $ rabbithole
 ```
+
+Upgrade
+-------
+
+To upgrade simply follow the above steps but don't copy the sample inventory or configuration files. Please read the release notes for changes to the configuration. Make sure to run once as root to ensure Python compiles to bytecode.
 
 SSH Portal
 ----------
@@ -69,6 +74,7 @@ Administration:
 
 - rh-config - Manage the configuration through RabbitHole. Requires user to be in the adminUsers list.
 - ssh-keys - Manage the authorized_keys for SSH
+- known_hosts - Manage the known_hosts file
 
 "Builtin" commands:
 
