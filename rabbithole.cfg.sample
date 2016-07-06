@@ -10,6 +10,9 @@ allowRootShell = yes
 # Comma delimited list of usernames who can run a shell
 shellUsers = vagrant
 
+# What shell should be started, defaults to "/bin/bash --login"
+shell = /bin/bash --login
+
 # Comma delimited list of usernames who can run admin commands
 adminUsers = vagrant
 

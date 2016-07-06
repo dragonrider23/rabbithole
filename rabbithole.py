@@ -12,8 +12,10 @@ from rh.config import RhConfig
 from modules import *
 
 # - Start a Bash shell
-def startShell():
-    common.startProcess("/usr/bin/env bash --login")
+def startShell(config):
+    shell = config.get('core','shell')
+    if shell == '': shell = "/bin/bash --login"
+    common.startProcess(shell)
 
 # - Exit from portal
 # Syntax: exit
@@ -31,10 +33,10 @@ def echoCmd(_, args):
 def shellCmd(config, _):
     # If root user and allowRootShell, drop to shell
     if geteuid() == 0 and config.getboolean('core', 'allowRootShell'):
-        startShell()
+        startShell(config)
     # If user is in allowed group
     elif config.rhGetData('username') in config.get('core', 'shellUsers').split(','):
-        startShell()
+        startShell(config)
     else:
         print("Operation not permitted")
 
@@ -119,7 +121,7 @@ def main():
     # If user is root and rootBypass is enabled, just drop to a shell
     if geteuid() == 0 and config.getboolean('core', 'rootBypass'):
         print("RabbitHole: Root bypass enabled, starting Bash shell...")
-        startShell()
+        startShell(config)
         sys.exit()
 
     # The shell command is only available in interpreter mode
