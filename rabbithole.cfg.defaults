@@ -33,6 +33,15 @@ motdFile = /etc/motd
 # already imposed with user/group permissions.
 wrappedCommands = ssh,telnet,ping
 
+[history]
+# Number of history lines to keep
+length = 300
+
+# Where to save the history file. Environment args will be expanded to their full
+# values. A leading tilde will be replaced with the user's home directory. This should
+# create a unique path for each user otherwise the histories will mix between users.
+userfile = ~/.rabbithole-history
+
 [connect]
 # Allow users to ssh using a different username with username@device
 allowSwitchUser = yes
