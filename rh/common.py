@@ -121,8 +121,8 @@ def getInput(prompt='', strip=False):
     else:
         return text
 
-def getInputNoHistory(prompt=''):
-    inp = getInput(prompt, True)
+def getInputNoHistory(prompt='', strip=False):
+    inp = getInput(prompt, strip)
     if inp != '': readline.remove_history_item(readline.get_current_history_length()-1)
     return inp
 

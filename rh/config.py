@@ -38,16 +38,16 @@ class RhConfig(SafeConfigParser):
         return self._filename
 
     def rhAddData(self, name, value):
-        name = self.rhNormalizeName(name)
+        name = self._rhNormalizeName(name)
         self._rhData[name] = value
 
     def rhGetData(self, name, default=None):
-        name = self.rhNormalizeName(name)
+        name = self._rhNormalizeName(name)
         if name in self._rhData:
             return self._rhData[name]
         return default
 
-    def rhNormalizeName(self, name):
+    def _rhNormalizeName(self, name):
         return name.lower().replace(' ', '-')
 
 def loadConfig(configFile='', defaults=''):
