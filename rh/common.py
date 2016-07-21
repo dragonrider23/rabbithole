@@ -109,14 +109,20 @@ def startProcess(cmd):
         process.wait()
 
 # Python 2/3 safe input function
-def getInput(prompt=''):
+def getInput(prompt='', strip=False):
+    text = ''
     if sys.version_info.major == 2:
-        return raw_input(prompt)
+        text = raw_input(prompt)
     else:
-        return input(prompt)
+        text = input(prompt)
 
-def getInputNoHistory(prompt=''):
-    inp = getInput(prompt)
+    if strip:
+        return text.strip()
+    else:
+        return text
+
+def getInputNoHistory(prompt='', strip=False):
+    inp = getInput(prompt, strip)
     if inp != '': readline.remove_history_item(readline.get_current_history_length()-1)
     return inp
 

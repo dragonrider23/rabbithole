@@ -9,7 +9,7 @@ else:
 
 # Manage the rabbithole configuration
 def _configCmd(config, args):
-    if not getlogin() in config.get('core', 'adminUsers').split(','):
+    if not config.rhGetData('isAdmin'):
         print("Operation not permitted")
         return
 

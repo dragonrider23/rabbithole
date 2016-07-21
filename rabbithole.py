@@ -7,13 +7,14 @@ import sys
 import os.path
 import getopt
 import pwd
+import atexit
 
 # Package specific python modules/packages
 import rh.common as common
 import rh.config as rhconfig
 from modules import *
 
-version = '1.2.0'
+version = '1.3.0'
 
 # - Start a shell
 def startShell(config):
@@ -64,7 +65,39 @@ def printLoginHeader():
     print("Type help to see available commands\nLast login: {}".format(ll))
 
 def printUsage():
-    print("Usage: {} [-c config] [-v] [-h]".format(os.path.basename(sys.argv[0])))
+    print("""Usage: {} [options]
+
+    Options:
+
+      -c, --config FILE
+            The configuration file to use. If not given,
+            it will be searched for first the directory
+            where the main script is located and them
+            /etc/rabbithole. If one is not found the
+            script will exit with an error.
+
+      -d, --defaults FILE
+            Specify the file to load as configuration
+            defaults. This option should only be used in
+            development and should not be used in production
+            unless you have a good reason.
+
+      -h
+            Display this help text.
+
+      -v
+            Enable verbose output.
+    """.format(os.path.basename(sys.argv[0])))
+
+
+def loadHistoryFile(config):
+    if not os.path.isfile(config.rhGetData('historyFile')):
+        open(config.rhGetData('historyFile'), 'a').close()
+    readline.read_history_file(config.rhGetData('historyFile'))
+
+def writeHistoryFile(config):
+    readline.set_history_length(int(config.get('history', 'length')))
+    readline.write_history_file(config.rhGetData('historyFile'))
 
 ## - Main Script
 def processCmd(config, cmd):
@@ -81,6 +114,7 @@ def processCmd(config, cmd):
 
 def main(argv):
     cliConfigArg = ''
+    cliDefaultConfigArg = ''
     cliCommand = ''
     cliVerboseOutput = False
 
@@ -91,7 +125,7 @@ def main(argv):
 
     # Parse cli flags
     try:
-        opts, args = getopt.getopt(argv,"c:hv",["help","config=","verbose"])
+        opts, args = getopt.getopt(argv, "c:d:hv", ["help","defaults=","config=","verbose"])
     except getopt.GetoptError:
         printUsage()
         sys.exit(2)
@@ -102,17 +136,28 @@ def main(argv):
             sys.exit()
         elif opt in ('-c', "--config"):
             cliConfigArg = arg
+        elif opt in ('-d', "--defaults"):
+            cliDefaultConfigArg = arg
         elif opt in ('-v', "--verbose"):
             cliVerboseOutput = True
 
     # Load and populate configuration
-    config = rhconfig.loadConfig(cliConfigArg)
+    config = rhconfig.loadConfig(configFile=cliConfigArg, defaults=cliDefaultConfigArg)
     if cliVerboseOutput: print("Config File: {}".format(config.getFilename()))
     username = pwd.getpwuid(os.geteuid())[0]
     config.rhAddData('username', username)
     config.rhAddData('version', version)
     config.rhAddData('verbose', cliVerboseOutput)
-    common.initialize(config)
+    config.rhAddData('isAdmin', os.getlogin() in config.get('core', 'adminUsers').split(','))
+
+    # History file stuff
+    # Expand any environment variables
+    config.rhAddData('historyFile', os.path.expandvars(config.get('history', 'userfile')))
+    # If it starts with a tilde, expand user's home directory
+    if config.rhGetData('historyFile').startswith('~'):
+        config.rhAddData('historyFile', os.path.expanduser(config.rhGetData('historyFile')))
+    loadHistoryFile(config)
+    atexit.register(writeHistoryFile, config)
 
     # Register "builtin" commands
     common.registerCmd('exit', exitCmd, "Close this ssh connection")
@@ -121,6 +166,8 @@ def main(argv):
     common.registerCmd('echo', echoCmd, "Echo, echo, echo, echo")
     common.registerCmd('version', versionCmd, "Print version of RabbitHole")
     common.registerCmd('whoami', whoamiCmd, "Print current username")
+
+    common.initialize(config) # Fire off any initialization functions
 
     # Check if someone SSHed into the machine with a command
     if os.getenv('SSH_ORIGINAL_COMMAND', '') != '':
@@ -162,7 +209,7 @@ def main(argv):
     # Main application loop
     while True:
         try:
-            cmd = common.getInput(config.rhGetData('username', 'RabbitHole') + '> ')
+            cmd = common.getInput(config.rhGetData('username', 'RabbitHole') + '> ', True)
         except KeyboardInterrupt:
             print('\n')
             exitCmd()

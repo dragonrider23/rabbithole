@@ -38,20 +38,20 @@ class RhConfig(SafeConfigParser):
         return self._filename
 
     def rhAddData(self, name, value):
-        name = self.rhNormalizeName(name)
+        name = self._rhNormalizeName(name)
         self._rhData[name] = value
 
     def rhGetData(self, name, default=None):
-        name = self.rhNormalizeName(name)
+        name = self._rhNormalizeName(name)
         if name in self._rhData:
             return self._rhData[name]
         return default
 
-    def rhNormalizeName(self, name):
+    def _rhNormalizeName(self, name):
         return name.lower().replace(' ', '-')
 
-def loadConfig(configFile=''):
-    if configFile == '' or not os.path.isfile(configFile):
+def loadConfig(configFile='', defaults=''):
+    if configFile.strip() == '' or not os.path.isfile(configFile):
         configFile=''
         for filename in configFileLocations:
             if os.path.isfile(filename):
@@ -62,8 +62,11 @@ def loadConfig(configFile=''):
         print("RabbitHole SSH Portal\n\nNo configuration file found.\nPlease alert the system administrator.")
         sys.exit()
 
+    if defaults.strip() == '' or not os.path.isfile(defaults):
+        defaults = defaultsFile
+
     # Parse configuration file
     config = RhConfig()
-    config.read(defaultsFile)
-    config.read(os.path.abspath(configFile))
+    config.read(os.path.abspath(defaults))
+    config.read(os.path.abspath(configFile)) # This will set the config's filename to the real file
     return config
