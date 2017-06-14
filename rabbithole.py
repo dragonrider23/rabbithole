@@ -16,7 +16,7 @@ import rh.common as common
 import rh.config as rhconfig
 from modules import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-VERSION = '1.3.0'
+VERSION = '1.4.0'
 
 
 def start_shell(config):

@@ -1,5 +1,11 @@
 # Release Notes
 
+## v1.4.0
+
+- Follow PEP 8 style
+- Corrected help text for "known-hosts" command
+- Slightly less restrictive regex with "list" command
+
 ## v1.3.0
 
 - Added cli history retention and restore on login.
