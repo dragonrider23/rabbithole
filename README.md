@@ -27,7 +27,7 @@ Administration:
 
 - rh-config - Manage the configuration through RabbitHole. Requires user to be in the adminUsers list.
 - ssh-keys - Manage the authorized_keys for SSH
-- known_hosts - Manage the known_hosts file
+- known-hosts - Manage the known_hosts file
 
 "Builtin" commands:
 
