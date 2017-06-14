@@ -1,10 +1,12 @@
 #! /usr/bin/env python
+""" Rabbithole is a simple restrictive shell.
+"""
 from __future__ import print_function
-from subprocess import check_output, call
+from subprocess import check_output
 import os
+import os.path
 import readline
 import sys
-import os.path
 import getopt
 import pwd
 import atexit
@@ -12,59 +14,79 @@ import atexit
 # Package specific python modules/packages
 import rh.common as common
 import rh.config as rhconfig
-from modules import *
+from modules import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-version = '1.3.0'
+VERSION = '1.3.0'
 
-# - Start a shell
-def startShell(config):
-    common.startProcess(config.get('core','shell'))
 
-# - Exit from portal
-# Syntax: exit
-def exitCmd(*_):
+def start_shell(config):
+    """ Start a shell
+    """
+    common.start_process(config.get('core', 'shell'))
+
+
+def exit_cmd(*_):
+    """ Exit from portal
+        Syntax: exit
+    """
     print("Please come again")
     sys.exit()
 
-# - Just echo
-# Syntax: echo [anything]
-def echoCmd(_, args):
+
+def echo_cmd(_, args):
+    """ Just echo
+        Syntax: echo [anything]
+    """
     print(args)
 
-# - Print version number
-# Syntax: version
-def versionCmd(config, _):
-    print(config.rhGetData('version'))
 
-# - Start a shell
-# Syntax: shell
-def shellCmd(config, _):
-    if not config.rhGetData('username') in config.get('core', 'shellUsers').split(','):
+def version_cmd(config, _):
+    """ Print version number
+        Syntax: version
+    """
+    print(config.rh_get_data('version'))
+
+
+def shell_cmd(config, _):
+    """ Start a shell
+        Syntax: shell
+    """
+    if not config.rh_get_data('canShell'):
         print("Operation not permitted")
         return
-    startShell(config)
+    start_shell(config)
 
-# - Display current username
-# Syntax: whoami
-def whoamiCmd(config, _):
-    print(config.rhGetData('username'))
 
-# - Print a Message of the Day
-def printMotd(file):
-    if os.path.isfile(file):
-        with open(file, 'r') as fin:
+def whoami_cmd(config, _):
+    """ Display current username
+        Syntax: whoami
+    """
+    print(config.rh_get_data('username'))
+
+
+def print_motd(motd_file):
+    """ Print a Message of the Day
+    """
+    if os.path.isfile(motd_file):
+        with open(motd_file, 'r') as fin:
             print(fin.read(), end='')
 
-# - Print the last login time and a quick start text
-def printLoginHeader():
-    # Get last login time
-    ll = 'Unknown'
-    # Windows/cygwin doesn't have have 'last'
-    if not sys.platform == 'win32' and not sys.platform == 'cygwin':
-        ll = check_output("last -1 -R  $USER | head -1 | cut -c 23-41", shell=True).decode("utf-8").rstrip()
-    print("Type help to see available commands\nLast login: {}".format(ll))
 
-def printUsage():
+def print_login_header():
+    """ Print the last login time and a quick start text
+        Get last login time
+    """
+    last_login = 'Unknown'
+    # Windows/cygwin doesn't have have 'last'
+    if sys.platform != 'win32' and sys.platform != 'cygwin':
+        last_login = check_output("last -1 -R  $USER | head -1 | cut -c 23-41",
+                                  shell=True).decode("utf-8").rstrip()
+    print("Type help to see available commands\nLast login: {}".format(last_login))
+
+
+def print_usage():
+    """ Print usage
+    """
     print("""Usage: {} [options]
 
     Options:
@@ -72,7 +94,7 @@ def printUsage():
       -c, --config FILE
             The configuration file to use. If not given,
             it will be searched for first the directory
-            where the main script is located and them
+            where the main script is located and then
             /etc/rabbithole. If one is not found the
             script will exit with an error.
 
@@ -90,132 +112,155 @@ def printUsage():
     """.format(os.path.basename(sys.argv[0])))
 
 
-def loadHistoryFile(config):
-    if not os.path.isfile(config.rhGetData('historyFile')):
-        open(config.rhGetData('historyFile'), 'a').close()
-    readline.read_history_file(config.rhGetData('historyFile'))
+def load_history_file(config):
+    """ Load user CLI history file
+    """
+    if not os.path.isfile(config.rh_get_data('historyFile')):
+        open(config.rh_get_data('historyFile'), 'a').close()
+    readline.read_history_file(config.rh_get_data('historyFile'))
 
-def writeHistoryFile(config):
+
+def write_history_file(config):
+    """ Write user CLI history file
+    """
     readline.set_history_length(int(config.get('history', 'length')))
-    readline.write_history_file(config.rhGetData('historyFile'))
+    readline.write_history_file(config.rh_get_data('historyFile'))
 
-## - Main Script
-def processCmd(config, cmd):
+
+def process_cmd(config, cmd):
+    """ Process an invoked command
+    """
     # Separate command from arguments
-    cmdParts = cmd.split(' ', 1)
-    head = cmdParts[0]
+    cmd_parts = cmd.split(' ', 1)
+    head = cmd_parts[0]
     args = ''
-    if len(cmdParts) == 2:
-        args = cmdParts[1]
+    if len(cmd_parts) == 2:
+        args = cmd_parts[1]
 
     # Call the command
-    if not common.callCmd(head, config, args):
+    if not common.call_cmd(head, config, args):
         print("RabbitHole: Unknown command '{}'".format(head))
 
-def main(argv):
-    cliConfigArg = ''
-    cliDefaultConfigArg = ''
-    cliCommand = ''
-    cliVerboseOutput = False
+
+def main(argv):  # pylint: disable=too-many-branches,too-many-statements
+    """ Main entrypoint
+    """
+    cli_config_arg = ''
+    cli_default_config_arg = ''
+    cli_command = ''
+    cli_verbose_output = False
 
     # Detect if a command was given as an argument
     if '--' in argv:
-        cliCommand = ' '.join(argv[argv.index('--')+1:])
+        cli_command = ' '.join(argv[argv.index('--') + 1:])
         argv = argv[:argv.index('--')]
 
     # Parse cli flags
     try:
-        opts, args = getopt.getopt(argv, "c:d:hv", ["help","defaults=","config=","verbose"])
+        opts, _ = getopt.getopt(
+            argv, "c:d:hv", ["help", "defaults=", "config=", "verbose"])
     except getopt.GetoptError:
-        printUsage()
+        print_usage()
         sys.exit(2)
 
     for opt, arg in opts:
         if opt in ('-h', "--help"):
-            printUsage()
+            print_usage()
             sys.exit()
         elif opt in ('-c', "--config"):
-            cliConfigArg = arg
+            cli_config_arg = arg
         elif opt in ('-d', "--defaults"):
-            cliDefaultConfigArg = arg
+            cli_default_config_arg = arg
         elif opt in ('-v', "--verbose"):
-            cliVerboseOutput = True
+            cli_verbose_output = True
 
     # Load and populate configuration
-    config = rhconfig.loadConfig(configFile=cliConfigArg, defaults=cliDefaultConfigArg)
-    if cliVerboseOutput: print("Config File: {}".format(config.getFilename()))
+    config = rhconfig.load_config(
+        config_file=cli_config_arg, defaults=cli_default_config_arg)
+
+    if cli_verbose_output:
+        print("Config File: {}".format(config.get_filename()))
+
     username = pwd.getpwuid(os.geteuid())[0]
-    config.rhAddData('username', username)
-    config.rhAddData('version', version)
-    config.rhAddData('verbose', cliVerboseOutput)
-    config.rhAddData('isAdmin', os.getlogin() in config.get('core', 'adminUsers').split(','))
+    config.rh_add_data('username', username)
+    config.rh_add_data('version', VERSION)
+    config.rh_add_data('verbose', cli_verbose_output)
+    config.rh_add_data('isAdmin', username in
+                       config.get('core', 'adminUsers').split(','))
+    config.rh_add_data('canShell', username in
+                       config.get('core', 'shellUsers').split(','))
 
     # History file stuff
     # Expand any environment variables
-    config.rhAddData('historyFile', os.path.expandvars(config.get('history', 'userfile')))
+    config.rh_add_data('historyFile',
+                       os.path.expandvars(config.get('history', 'userfile')))
+
     # If it starts with a tilde, expand user's home directory
-    if config.rhGetData('historyFile').startswith('~'):
-        config.rhAddData('historyFile', os.path.expanduser(config.rhGetData('historyFile')))
-    loadHistoryFile(config)
-    atexit.register(writeHistoryFile, config)
+    if config.rh_get_data('historyFile').startswith('~'):
+        config.rh_add_data('historyFile',
+                           os.path.expanduser(config.rh_get_data('historyFile')))
+
+    load_history_file(config)
+    atexit.register(write_history_file, config)
 
     # Register "builtin" commands
-    common.registerCmd('exit', exitCmd, "Close this ssh connection")
-    common.registerAlias('quit', 'exit')
-    common.registerAlias('logout', 'exit')
-    common.registerCmd('echo', echoCmd, "Echo, echo, echo, echo")
-    common.registerCmd('version', versionCmd, "Print version of RabbitHole")
-    common.registerCmd('whoami', whoamiCmd, "Print current username")
+    common.register_cmd('exit', exit_cmd, "Close this ssh connection")
+    common.register_alias('quit', 'exit')
+    common.register_alias('logout', 'exit')
+    common.register_cmd('echo', echo_cmd, "Echo, echo, echo, echo")
+    common.register_cmd('version', version_cmd, "Print version of RabbitHole")
+    common.register_cmd('whoami', whoami_cmd, "Print current username")
 
-    common.initialize(config) # Fire off any initialization functions
+    common.initialize(config)  # Fire off any initialization functions
 
     # Check if someone SSHed into the machine with a command
     if os.getenv('SSH_ORIGINAL_COMMAND', '') != '':
-        processCmd(config, os.getenv('SSH_ORIGINAL_COMMAND'))
+        process_cmd(config, os.getenv('SSH_ORIGINAL_COMMAND'))
         sys.exit()
 
     # If main is called with a command, process it then exit
-    if cliCommand != '':
-        processCmd(config, cliCommand)
+    if cli_command != '':
+        process_cmd(config, cli_command)
         sys.exit()
 
     # If rootBypass is enabled, add root to userBypass list
     # Kept for backwards compatibility
     if config.getboolean('core', 'rootBypass'):
-        ub = config.get('core', 'userBypass')+",root"
-        ub = ub.lstrip(',')
-        config.set('core', 'userBypass', ub)
+        user_bypass = config.get('core', 'userBypass') + ",root"
+        user_bypass = user_bypass.lstrip(',')
+        config.set('core', 'userBypass', user_bypass)
 
     # If user is in the bypass group, drop to shell
     if username != '' and username in config.get('core', 'userBypass').split(','):
-        print("Shell bypass...")
-        startShell(config)
+        start_shell(config)
         sys.exit()
 
     # If allowRootShell is enabled, add root to shellUsers list
     # Kept for backwards compatibility
     if config.getboolean('core', 'allowRootShell'):
-        ub = config.get('core', 'shellUsers')+",root"
-        ub = ub.lstrip(',')
-        config.set('core', 'shellUsers', ub)
+        user_bypass = config.get('core', 'shellUsers') + ",root"
+        user_bypass = user_bypass.lstrip(',')
+        config.set('core', 'shellUsers', user_bypass)
 
     # The shell command is only available in interpreter mode
-    common.registerCmd('shell', shellCmd, "Drop to a shell")
+    common.register_cmd('shell', shell_cmd, "Drop to a shell")
 
     if config.getboolean('core', 'showMotd'):
-        printMotd(config.get('core', 'motdFile'))
-    printLoginHeader()
+        print_motd(config.get('core', 'motdFile'))
+    print_login_header()
 
     # Main application loop
     while True:
         try:
-            cmd = common.getInput(config.rhGetData('username', 'RabbitHole') + '> ', True)
+            cmd = common.get_input(config.rh_get_data(
+                'username', 'RabbitHole') + '> ', True)
         except KeyboardInterrupt:
             print('\n')
-            exitCmd()
+            exit_cmd()
 
         if cmd != '':
-            processCmd(config, cmd)
+            process_cmd(config, cmd)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

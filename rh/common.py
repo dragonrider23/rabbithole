@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+This modules contains functions and utilities used throughout
+the application. This module is also responsible for fulfilling
+command invokations.
+"""
 from __future__ import print_function
 from subprocess import Popen
 from datetime import datetime
@@ -6,110 +12,143 @@ import shlex
 import readline
 
 # Dict of {"func", "help", "alias"} indexed with a command name
-cmds = {}
-inits = []
+CMDS = {}
+INITS = []
+
 
 class RhSilentException(Exception):
+    """ Passes an error upstream to the command caller.
+        This exception will be written to the error log
+        and then silently ignored.
+    """
     pass
 
-# - Register and initialization function, used by modules
-def registerInit(func):
-    inits.append(func)
 
-# - Call the initialization functions in the order of registration
+def register_init(func):
+    """ Register and initialization function, used by modules
+    """
+    INITS.append(func)
+
+
 def initialize(*args):
-    for f in inits:
-        f(*args)
+    """ Call the initialization functions in the order of registration
+    """
+    for func in INITS:
+        func(*args)
 
-# - Register a command
-# name (string) - Command name, what the user will type in
-# func (function) - Function to handle command
-# help (string) - Help text to display (optional)
-def registerCmd(name, func, helpText=''):
-    name = _normalizeName(name)
-    if name in cmds:
-        _writeToErrorLog("Core", "Command {} is being redeclared".format(name))
-    cmds[name] = {"func": func, "help": helpText, "alias": ''}
 
-def registerAlias(alias, cmd):
-    alias = _normalizeName(alias)
-    if alias in cmds:
-        _writeToErrorLog("Core", "Command {} is being redeclared".format(alias))
-    cmds[alias] = {"func": None, "help": '', "alias": cmd}
+def register_cmd(name, func, help_text=''):
+    """ Register a command
+        name (string) - Command name, what the user will type in
+        func (function) - Function to handle command
+        help (string) - Help text to display (optional)
+    """
+    name = _normalize_name(name)
+    if name in CMDS:
+        _write_to_error_log(
+            "Core", "Command {} is being redeclared".format(name))
+    CMDS[name] = {"func": func, "help": help_text, "alias": ''}
 
-# - Register a help text for a command. Used if registerCmd has already been called
-def registerHelp(name, text):
-    name = _normalizeName(name)
-    cmd[name]["help"] = text
 
-def _normalizeName(name):
+def register_alias(alias, cmd):
+    """ Register an alias for an existing command
+    """
+    alias = _normalize_name(alias)
+    if alias in CMDS:
+        _write_to_error_log(
+            "Core", "Command {} is being redeclared".format(alias))
+    CMDS[alias] = {"func": None, "help": '', "alias": cmd}
+
+
+def register_help(name, text):
+    """ Register a help text for a command. Used if registerCmd has already been called
+    """
+    name = _normalize_name(name)
+    CMDS[name]["help"] = text
+
+
+def _normalize_name(name):
     return name.lower().replace(' ', '-')
 
-# - Call command name with args
-def callCmd(name, *args):
-    name = _normalizeName(name)
+
+def call_cmd(name, *args):
+    """ Call command name with args
+    """
+    name = _normalize_name(name)
     try:
-        return _callCmd(name, *args)
+        return _call_cmd(name, *args)
     except KeyboardInterrupt:
         print()
         return True
     except RuntimeError:
         print("Recursion loop detected for command '{}'".format(name))
-    except RhSilentException as e:
-        _writeToErrorLog(e, name)
-    except Exception as e:
+    except RhSilentException as excp:
+        _write_to_error_log(excp, name)
+    except Exception as excp:  # pylint: disable=W0703
         print("There was an error running the command '{}'".format(name))
-        _writeToErrorLog(e, name)
+        _write_to_error_log(excp, name)
     return True
 
-def _callCmd(name, *args):
-    if name in cmds:
-        if cmds[name]["alias"] != '':
-            return _callCmd(cmds[name]["alias"], *args)
 
-        cmds[name]["func"](*args)
+def _call_cmd(name, *args):
+    if name in CMDS:
+        if CMDS[name]["alias"] != '':
+            return _call_cmd(CMDS[name]["alias"], *args)
+
+        CMDS[name]["func"](*args)
         return True
     return False
 
-def _writeToErrorLog(e, module):
-    errorMsg = "{} ERROR: Module: {} Message: {}\n".format(datetime.today(), module, str(e))
-    with open("/vagrant/error.log", 'a') as logfile:
-        logfile.write(errorMsg)
 
-# - Dynamically generate a help text for all registered commands sorted in alphabetical order
-# Syntax: help
-def _helpCmd(*_):
+def _write_to_error_log(msg, module):
+    error_msg = "{} ERROR: Module: {} Message: {}\n".format(
+        datetime.today(), module, str(msg))
+    with open("/vagrant/error.log", 'a') as logfile:
+        logfile.write(error_msg)
+
+
+def _help_cmd(*_):
+    """ Dynamically generate a help text for all registered commands sorted in alphabetical order
+        Syntax: help
+    """
     print("RabbitHole SSH Portal\n\nCommands:")
-    for name in sorted(cmds):
-        if cmds[name]["alias"] != '':
-            print("\t{} - Alias for {}".format(name, cmds[name]["alias"].upper()))
+    for name in sorted(CMDS):
+        if CMDS[name]["alias"] != '':
+            print("\t{} - Alias for {}".
+                  format(name, CMDS[name]["alias"].upper()))
             continue
 
-        if cmds[name]["help"] != '':
-            print("\t{} - {}".format(name, cmds[name]["help"]))
+        if CMDS[name]["help"] != '':
+            print("\t{} - {}".format(name, CMDS[name]["help"]))
+
 
 # Register the help command
-registerCmd('help', _helpCmd, "Display this text")
+register_cmd('help', _help_cmd, "Display this text")
 
-## -- Application-wide helper functions --
+# -- Application-wide helper functions --
 
-# - Start a fully interactive process
-# cmd is a STRING with the full command and arguments
-def startProcess(cmd):
-    # Windows uses a string, *nix uses an array
-    if not sys.platform == 'win32' and not sys.platform == 'cygwin':
+
+def start_process(cmd):
+    """ Start a fully interactive process
+        cmd is a STRING with the full command and arguments
+        Windows uses a string, *nix uses an array
+    """
+    if sys.platform != 'win32' and sys.platform != 'cygwin':
         cmd = shlex.split(cmd)
 
     try:
-        process = Popen(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+        process = Popen(cmd, stdin=sys.stdin,
+                        stdout=sys.stdout, stderr=sys.stderr)
         process.wait()
     except KeyboardInterrupt:
         print('', end='')
     finally:
         process.wait()
 
-# Python 2/3 safe input function
-def getInput(prompt='', strip=False):
+
+def get_input(prompt='', strip=False):
+    """ Python 2/3 safe input function
+    """
     text = ''
     if sys.version_info.major == 2:
         text = raw_input(prompt)
@@ -118,13 +157,20 @@ def getInput(prompt='', strip=False):
 
     if strip:
         return text.strip()
-    else:
-        return text
 
-def getInputNoHistory(prompt='', strip=False):
-    inp = getInput(prompt, strip)
-    if inp != '': readline.remove_history_item(readline.get_current_history_length()-1)
+    return text
+
+
+def get_input_no_history(prompt='', strip=False):
+    """ Get user input without history
+    """
+    inp = get_input(prompt, strip)
+    if inp != '':
+        readline.remove_history_item(readline.get_current_history_length() - 1)
     return inp
 
-def notImplemented():
+
+def not_implemented():
+    """ Placeholder for things that aren't implemented
+    """
     print("Not implemented yet")

@@ -5,3 +5,4 @@ error.log
 *.cfg
 __pycache__/
 private/
+ubuntu-xenial-16.04-cloudimg-console.log

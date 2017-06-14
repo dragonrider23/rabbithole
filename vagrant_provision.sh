@@ -10,14 +10,14 @@ CONFIG=/etc/rabbithole/rabbithole.cfg
 mkdir /etc/rabbithole
 cp /vagrant/inventory /etc/rabbithole/inventory
 ln -s /vagrant/rabbithole.cfg.defaults /etc/rabbithole/rabbithole.cfg.defaults
-echo '[core]' > $CONFIG
-echo 'adminUsers = vagrant' >> $CONFIG
-echo 'shellUsers = vagrant' >> $CONFIG
+
+ln -s /vagrant/rabbithole.cfg.vagrant $CONFIG
 
 # Link to command in PATH
 ln -s /vagrant/rabbithole.py /usr/local/bin/rabbithole
+ln -s /usr/bin/python3 /usr/bin/python
 
 # Configure SSHD
-echo -e "\n"'Match User !vagrant,*' >> /etc/ssh/sshd_config
+echo -e "\n"'Match User !ubuntu,*' >> /etc/ssh/sshd_config
 echo "ForceCommand /usr/local/bin/rabbithole" >> /etc/ssh/sshd_config
 service ssh restart
