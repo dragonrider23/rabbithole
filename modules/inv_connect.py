@@ -101,11 +101,11 @@ def _list_cmd(config, args):
 
     if args == '':
         # Match a line that doesn't start with a # and has at least one character
-        args = '[^#].+'
+        args = '^[^#].*'
     else:
         args = re.escape(args)
 
-    reg = re.compile('\\b' + args, re.IGNORECASE)
+    reg = re.compile(args, re.IGNORECASE)
     matched_devices = []
     for line in inv_file:
         # Strip off the protocol for search
@@ -117,13 +117,8 @@ def _list_cmd(config, args):
     if not matched_devices:
         print("\tNo matches")
     else:
-        # TODO: Fix this to show 4 devices per row with consistant formatting
-        # print("\t", end='')
         for val in matched_devices:
-            print("\t{}: {}@{}".format(val[0], val[2], val[1]))
-            # print(val, end='\t')
-            # if (i+1) % 4 == 0 and (i+1) != len(matchedDevices):
-            #     print('\n\t', end='')
+            print("\t{} {} {}".format(val[0], val[1], val[2]))
 
         print()
 
