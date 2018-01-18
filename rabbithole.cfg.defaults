@@ -33,6 +33,9 @@ motdFile = /etc/motd
 # already imposed with user/group permissions.
 wrappedCommands = ssh,telnet,ping
 
+# Log file
+logFile = /var/log/rabbithole.log
+
 [history]
 # Number of history lines to keep
 length = 300

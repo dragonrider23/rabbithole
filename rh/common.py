@@ -7,6 +7,9 @@ command invokations.
 from __future__ import print_function
 from subprocess import Popen
 from datetime import datetime
+import os
+import os.path
+import errno
 import sys
 import shlex
 import readline
@@ -14,6 +17,7 @@ import readline
 # Dict of {"func", "help", "alias"} indexed with a command name
 CMDS = {}
 INITS = []
+ERROR_LOG = "/var/log/rabbithole.log"
 
 
 class RhSilentException(Exception):
@@ -100,11 +104,29 @@ def _call_cmd(name, *args):
     return False
 
 
+def set_error_log_file(filename):
+    """ Set the error log file path.
+    """
+    global ERROR_LOG
+    ERROR_LOG = filename
+
+
 def _write_to_error_log(msg, module):
     error_msg = "{} ERROR: Module: {} Message: {}\n".format(
         datetime.today(), module, str(msg))
-    with open("/vagrant/error.log", 'a') as logfile:
+
+    _ensure_filepath_exists(ERROR_LOG)
+    with open(ERROR_LOG, 'a') as logfile:
         logfile.write(error_msg)
+
+
+def _ensure_filepath_exists(filepath):
+    if not os.path.exists(os.path.dirname(filepath)):
+        try:
+            os.makedirs(os.path.dirname(filepath))
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
 
 
 def _help_cmd(*_):

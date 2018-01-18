@@ -1,5 +1,10 @@
 # Release Notes
 
+## v1.4.1
+
+- Allow log file to be configured.
+- Attempt to create a log file if it doesn't exist.
+
 ## v1.4.0
 
 - Follow PEP 8 style
