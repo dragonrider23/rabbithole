@@ -17,6 +17,11 @@ ln -s /vagrant/rabbithole.cfg.vagrant $CONFIG
 ln -s /vagrant/rabbithole.py /usr/local/bin/rabbithole
 ln -s /usr/bin/python3 /usr/bin/python
 
+# Configure logfile
+touch /vagrant/error.log
+chmod a+w /vagrant/error.log
+ln -s /vagrant/error.log /var/log/rabbithole.log
+
 # Configure SSHD
 echo -e "\n"'Match User !ubuntu,*' >> /etc/ssh/sshd_config
 echo "ForceCommand /usr/local/bin/rabbithole" >> /etc/ssh/sshd_config
