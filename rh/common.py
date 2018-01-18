@@ -104,6 +104,13 @@ def _call_cmd(name, *args):
     return False
 
 
+def set_error_log_file(filename):
+    """ Set the error log file path.
+    """
+    global ERROR_LOG
+    ERROR_LOG = filename
+
+
 def _write_to_error_log(msg, module):
     error_msg = "{} ERROR: Module: {} Message: {}\n".format(
         datetime.today(), module, str(msg))

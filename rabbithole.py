@@ -181,6 +181,8 @@ def main(argv):  # pylint: disable=too-many-branches,too-many-statements
     if cli_verbose_output:
         print("Config File: {}".format(config.get_filename()))
 
+    common.set_error_log_file(config.get('core', 'logFile'))
+
     username = pwd.getpwuid(os.geteuid())[0]
     config.rh_add_data('username', username)
     config.rh_add_data('version', VERSION)
