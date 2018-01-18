@@ -63,7 +63,6 @@ def _list_ssh_keys(config, args):
 
 def _delete_ssh_keys(config, args):
     # Delete an SSH authorized key
-    keys_file = os.path.expanduser("~/.ssh/authorized_keys")
     if len(args) != 1:
         print("Usage: ssh-keys delete [key #]")
         return
@@ -87,7 +86,7 @@ def _delete_ssh_keys(config, args):
 
     if modified:
         # Write new file
-        with open(keys_file, 'w') as key_file:
+        with open(_get_keys_filename(), 'w') as key_file:
             key_file.write('\n'.join(lines))
         print("Key removed")
     else:
