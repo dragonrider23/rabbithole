@@ -26,7 +26,7 @@ def _connect_cmd(config, args):
         print("What device should I connect to?")
         return
 
-    username = config.rhGetData('username')
+    username = config.rh_get_data('username')
     parts = args.split('@', 1)
     if len(parts) == 2:
         if config.getboolean('connect', 'allowSwitchUser'):
