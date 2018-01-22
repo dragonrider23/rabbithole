@@ -1,5 +1,4 @@
-RabbitHole
-==========
+# RabbitHole
 
 RabbitHole is an extensible, easy to use restrictive shell. It does offer an option to drop into Bash if needed. This functionality can of course be restricted to only certain users. This project was created with network administration in mind.
 
@@ -7,8 +6,7 @@ RabbitHole requires Python 2.7+ or Python 3+.
 
 [Documentation](docs)
 
-Commands
---------
+## Commands
 
 Here's a list of the included commands:
 
@@ -38,12 +36,10 @@ Administration:
 - version - Print current script version
 - whoami - Print current username
 
-Creating Modules
-----------------
+## Creating Modules
 
 RabbitHole is designed to be as extensible as possible. Commands are nothing more than python modules that have registered a handler function with the main script. Check out the [documentation](docs) to learn more about creating modules.
 
-License
--------
+## License
 
 This software is released as truly free software under the terms of the BSD-3 Clause license.
