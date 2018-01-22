@@ -1,5 +1,9 @@
 # Release Notes
 
+## v1.4.2
+
+- Fixed bug in connect module.
+
 ## v1.4.1
 
 - Allow log file to be configured.
